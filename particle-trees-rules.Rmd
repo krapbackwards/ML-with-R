@@ -1,0 +1,294 @@
+---
+title: "Classification-trees-or-rules"
+author: "Joseph Park"
+date: "4/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## data and packages
+
+```{r}
+
+library(class)
+
+library(tidyverse)
+
+library(gmodels)
+
+library(MLmetrics)
+
+library(C50)
+
+#library(Rweka)
+```
+
+```{r}
+particle <- read_csv("C:/Users/parkj/OneDrive/Documents/joe/ML with R/pid-5M.csv")
+```
+## sample (randomly) due to too much data for my laptop to process
+```{r}
+set.seed(47)
+particles <- particle[sample(nrow(particle), 50000), ]
+
+particles$id <- as.character(particles$id)
+
+
+print(particles[complete.cases(particles) == FALSE, ])
+str(as.factor(particles$id))
+print(which(is.na(particles)))
+print(summary(particles))
+for (i in 2:7){
+  print(sd(as.matrix(particles[,i])))
+}
+
+
+```
+```{r}
+for (i in 2:7){
+  hist(as.matrix(particles[,i]))
+}
+
+
+```
+## Split data
+
+```{r}
+particles_train <- particles[1:45000, 2:7]
+particles_test <- particles[45001:50000, 2:7]
+
+particles_train_labels <- particles[1:45000, 1]
+particles_test_labels <- particles[45001:50000, 1]
+```
+## Train classifier on training data and classify test data
+
+```{r}
+#generating classification for trials to find best accuracy
+accuracy = 1:30
+
+
+for (i in 1:30){
+
+  m <- C5.0(particles_train, as.factor(particles_train_labels[,1, drop = TRUE]), trials = i)
+
+
+  particles_test_pred <- predict(m, particles_test)
+    
+  #metric
+  accuracy[i] <- Accuracy(particles_test_pred, particles_test_labels[,1, drop = TRUE])
+
+#get best accurracy and corresponding index (with respect to Laplace estimator)
+  if (i > 1){
+    if (accuracy[i] > bestacc){
+      bestacc <- accuracy[i]
+      bestk <- i
+    }
+  } else {
+    bestacc <- accuracy[i]
+    bestk <- i
+  }
+}
+```
+## Metrics
+
+```{r}
+plot(accuracy[1:30])
+print(paste("The best accuracy is", bestacc))
+```
+```{r}
+
+m <- C5.0(particles_train, as.factor(particles_train_labels[,1, drop = TRUE]), trials = bestk)
+
+
+  particles_test_pred <- predict(m, particles_test)
+
+CrossTable(x = particles_test_labels[,1, drop = TRUE], y = particles_test_pred, prop.chisq=FALSE)
+
+
+
+```
+
+```{r}
+plot(m)
+```
+```{r}
+summary(m)
+```
+
+# now with rules
+
+## Train classifier on training data and classify test data
+
+```{r}
+#generating classification for trials to find best accuracy
+accuracy = 1:30
+
+
+for (i in 1:30){
+
+  m <- C5.0(particles_train, as.factor(particles_train_labels[,1, drop = TRUE]), trials = i, rules = TRUE)
+
+
+  particles_test_pred <- predict(m, particles_test)
+    
+  #metric
+  accuracy[i] <- Accuracy(particles_test_pred, particles_test_labels[,1, drop = TRUE])
+
+#get best accurracy and corresponding index (with respect to Laplace estimator)
+  if (i > 1){
+    if (accuracy[i] > bestacc){
+      bestacc <- accuracy[i]
+      bestk <- i
+    }
+  } else {
+    bestacc <- accuracy[i]
+    bestk <- i
+  }
+}
+```
+## Metrics
+
+```{r}
+plot(accuracy[1:30])
+print(paste("The best accuracy is", bestacc))
+```
+```{r}
+
+m <- C5.0(particles_train, as.factor(particles_train_labels[,1, drop = TRUE]), trials = bestk)
+
+
+  particles_test_pred <- predict(m, particles_test)
+
+CrossTable(x = particles_test_labels[,1, drop = TRUE], y = particles_test_pred, prop.chisq=FALSE)
+
+
+
+```
+```{r}
+summary(m)
+```
+
+# with costs if we specifically care about particle -11
+
+
+## Train classifier on training data and classify test data
+
+```{r}
+#generating classification for trials to find best accuracy
+
+cost_mat <- matrix(c(0, 5000, 5000, 5000, 5000,0,0,0,5000,0,0,0,0,0,0,0), nrow = 4)
+#cost_mat
+
+#accuracy = 1:30
+
+
+#for (i in 1:30){
+
+  m <- C5.0(particles_train, as.factor(particles_train_labels[,1, drop = TRUE]), trials = 30, costs = cost_mat)
+
+
+  particles_test_pred <- predict(m, particles_test)
+    
+  #metric
+  accuracy[3] <- Accuracy(particles_test_pred, particles_test_labels[,1, drop = TRUE])
+
+#get best accurracy and corresponding index (with respect to Laplace estimator)
+#  if (i > 1){
+#    if (accuracy[i] > bestacc){
+#      bestacc <- accuracy[i]
+#      bestk <- i
+#    }
+#  } else {
+#    bestacc <- accuracy[i]
+#    bestk <- i
+#  }
+#}
+```
+## Metrics
+
+```{r}
+#plot(accuracy[1:30])
+print(paste("The best accuracy is", accuracy[3]))
+```
+```{r}
+
+#m <- C5.0(particles_train, as.factor(particles_train_labels[,1, drop = TRUE]), trials = bestk)
+
+
+#  particles_test_pred <- predict(m, particles_test)
+
+CrossTable(x = particles_test_labels[,1, drop = TRUE], y = particles_test_pred, prop.chisq=FALSE)
+
+
+
+```
+```{r}
+summary(m)
+```
+
+
+
+
+
+
+# Rules in OneR
+```{r}
+
+#m <- OneR(id ~ ., particles[1:45000])
+
+
+#particles_test_pred <- predict(m, particles_test)
+    
+  #metric
+#accuracy[1] <- Accuracy(particles_test_pred, particles_test_labels[,1, drop = TRUE])
+
+
+```
+```{r}
+#print(paste("The accuracy is", accuracy[1]))
+```
+```{r}
+
+
+
+#CrossTable(x = particles_test_labels[,1, drop = TRUE], y = particles_test_pred, prop.chisq=FALSE)
+
+
+
+```
+```{r}
+#summary(m)
+```
+
+
+# Rules in Jrip
+```{r}
+
+#m <- Jrip(id ~ ., particles[1:45000])
+
+
+#particles_test_pred <- predict(m, particles_test)
+    
+  #metric
+#accuracy[2] <- Accuracy(particles_test_pred, particles_test_labels[,1, drop = TRUE])
+
+
+```
+```{r}
+#print(paste("The accuracy is", accuracy[2]))
+```
+```{r}
+
+
+
+#CrossTable(x = particles_test_labels[,1, drop = TRUE], y = particles_test_pred, prop.chisq=FALSE)
+
+
+
+```
+```{r}
+#summary(m)
+```

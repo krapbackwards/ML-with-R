@@ -1,0 +1,245 @@
+---
+title: "Classification-trees-or-rules"
+author: "Joseph Park"
+date: "4/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## data and packages
+
+```{r}
+
+library(class)
+
+library(tidyverse)
+
+library(gmodels)
+
+library(MLmetrics)
+
+library(neuralnet)
+```
+
+```{r}
+particle <- read_csv("C:/Users/parkj/OneDrive/Documents/joe/ML with R/pid-5M.csv")
+```
+## sample (randomly) due to too much data for my laptop to process
+```{r}
+set.seed(47)
+particles <- particle[sample(nrow(particle), 5000), ]
+
+particles$id <- as.character(particles$id)
+
+
+print(particles[complete.cases(particles) == FALSE, ])
+str(as.factor(particles$id))
+print(which(is.na(particles)))
+print(summary(particles))
+for (i in 2:7){
+  print(sd(as.matrix(particles[,i])))
+}
+
+
+```
+```{r}
+for (i in 2:7){
+  hist(as.matrix(particles[,i]))
+}
+
+
+```
+## Split data
+
+```{r}
+#particles_train <- particles[1:45000, 2:7]
+particles_test <- particles[4501:5000, 2:7]
+
+#particles_train_labels <- particles[1:45000, 1]
+particles_test_labels <- particles[4501:5000, 1]
+```
+## Train classifier on training data and classify test data
+
+```{r}
+m <- neuralnet(id ~ p + beta + theta + nphe + ein + eout, particles[1:4500,])
+
+particles_test_pred <- compute(m, particles_test)
+
+plot(m)
+
+
+print(str(particles_test_pred))
+
+```
+
+```{r}
+str(max.col(particles_test_pred$net.result))
+```
+
+```{r}
+for (i in 1:4){
+print(length(which(max.col(particles_test_pred$net.result) == i)))
+}
+```
+
+
+
+
+```{r}
+part_c <- as.character(1:500)
+
+part_c[which(max.col(particles_test_pred$net.result) == 1)] <- "-11"
+
+part_c[which(max.col(particles_test_pred$net.result) == 2)] <- "2122"
+
+part_c[which(max.col(particles_test_pred$net.result) == 3)] <- "211"
+
+part_c[which(max.col(particles_test_pred$net.result) == 4)] <- "321"
+
+accuracy <- Accuracy(part_c, particles_test_labels[,1, drop = TRUE])
+
+print(accuracy)
+```
+
+
+```{r}
+CrossTable(x = particles_test_labels[,1, drop = TRUE], y = part_c, prop.chisq=FALSE)
+```
+
+
+
+# With normalization
+
+```{r}
+normalize <- function(x) {
+return ((x - min(x)) / (max(x) - min(x)))
+}
+
+particles_norm <- particles
+
+particles_norm[, 2:7] <- normalize(particles[, 2:7])
+
+particles_test_norm <- particles_norm[4501:5000, 2:7]
+
+particles_test_labels_norm <- particles_norm[4501:5000, 1]
+
+m_rf <- randomForest(id ~ ., particles[1:45000])
+particles_test_pred <- predict(m_rf, particles_test)
+
+
+```
+
+```{r}
+m_norm <- neuralnet(id ~ p + beta + theta + nphe + ein + eout, particles_norm[1:4500,], linear.output = FALSE, hidden = 1)
+plot(m_norm)
+pred_norm <- compute(m_norm, particles_test_norm)
+```
+
+```{r}
+for (i in 1:4){
+print(length(which(max.col(pred_norm$net.result) == i)))
+}
+```
+```{r}
+part <- 1:500
+for (i in 1:4){
+part[which(max.col(pred_norm$net.result) == i)] <- i
+}
+```
+
+```{r}
+part_c_norm <- as.character(1:500)
+
+part_c_norm[which(max.col(pred_norm$net.result) == 1)] <- "-11"
+
+part_c_norm[which(max.col(pred_norm$net.result) == 2)] <- "2122"
+
+part_c_norm[which(max.col(pred_norm$net.result) == 3)] <- "211"
+
+part_c_norm[which(max.col(pred_norm$net.result) == 4)] <- "321"
+
+accuracy_norm <- Accuracy(part_c_norm, particles_test_labels[,1, drop = TRUE])
+
+print(accuracy_norm)
+```
+
+```{r}
+CrossTable(x = particles_test_labels[,1, drop = TRUE], y = part_c_norm, prop.chisq=FALSE)
+```
+
+
+
+
+# With standardization
+
+```{r}
+
+particles_z <- particles
+
+particles_z[, 2:7] <- scale(particles[, 2:7])
+
+particles_test_z <- particles_z[4501:5000, 2:7]
+
+particles_test_labels_z <- particles_z[4501:5000, 1]
+
+```
+
+```{r}
+#m_z <- neuralnet(id ~ p + beta + theta + nphe + ein + eout, particles_z[1:4500,], act.fct = "logistic", linear.output = FALSE)
+#pred_z <- compute(m_z, particles_test_z)
+```
+
+```{r}
+#for (i in 1:4){
+#print(length(which(max.col(pred_z$net.result) == i)))
+#}
+```
+
+```{r}
+#m_norm <- neuralnet(id ~ p + beta + theta + nphe + ein + eout, particles_norm[1:4500,], linear.output = F, hidden = c(3,2))
+#plot(m_norm)
+#pred_norm <- compute(m_norm, particles_test_norm)
+```
+
+
+
+# Mutliple nodes and different activation function
+
+```{r}
+#generating classification iteration over hidden nodes for better model performance
+#accuracy = 1:30
+
+
+#for (i in 1:30){
+
+#  m <- neuralnet(id ~ .,particles[1:45000], hidden = i, act.fct = "tanh")
+
+
+#  particles_test_pred <- predict(m, particles_test)
+    
+  #metric
+#  accuracy[i] <- Accuracy(particles_test_pred, particles_test_labels[,1, drop = TRUE])
+
+#get best accurracy and corresponding index (with respect to Laplace estimator)
+#  if (i > 1){
+#    if (accuracy[i] > bestacc){
+#      bestacc <- accuracy[i]
+#      bestk <- i
+#    }
+#  } else {
+#    bestacc <- accuracy[i]
+#    bestk <- i
+#  }
+#}
+```
+## Metrics
+
+```{r}
+#plot(accuracy[1:30])
+#print(paste("The best accuracy is", bestacc))
+```
+
+

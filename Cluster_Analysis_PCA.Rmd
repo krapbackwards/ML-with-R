@@ -1,0 +1,583 @@
+---  
+title: "Lecture 7 Cluster Analysis and PCA"
+author: "Seema Singh Saharan"
+date: "28 Sept 2019"
+output:
+  html_document:
+      theme: journal
+      toc: yes
+      toc_depth: 4
+      #toc_float: true
+  word_document:
+      toc: yes
+      toc_depth: 4
+      #toc_float: true
+  pdf_document:
+      toc: yes
+      theme: journal
+      toc_depth: 4
+      #toc_float: true
+---
+---
+
+**Objective:**
++ Visualization and Intution of Principal Componenet Analysis 
++	Comprehending Clustering as a unsupervised Learning Algorithm.
++ Clustering using kmeans, hierarchical, density methodologies.
++ Creating tree clusters, heatmaps and silhouettes.
++ Data is segmented by a similarity criterion using distance metrics.
+
+# Principal Component Analysis(PCA)
+
++ This technique helps visualize a data that has numerous variables that might be potentially correlated where each variable represents a dimension.
++ The data is represented in the form form component where each componenet is a linear combination of original variables.
++ The components capture the variation in the data where it accounts for the variabiltiy as per direction.The first componenet is set up on an axis that accounts for maximum variabiltiy in the data set wheras the second component accounts for variabilty the second level and is set orthogonal to the first axis.
++ The data dimensionality is significantly reduced.
++ Mathematically the variance accounted by each component is attributed by eigenvalues.
+
+**PCA Principal Component Analysis**
+
++ PCA : Is a dimension reduction technique invented in 1901 by Karl Pearson which is primarily used for seminal exploratory and predictive modelling research endeavors that result in pioneering noveau discovery based scientific findings.
++ Objective: PCA primarily achieves the following three purposes for obtaining discernable and actionable patterns from a large data without the loss of data integrity
+	**Extract the inherent though hidden pattern in the data.**
+	**Reduction of dimensionality within the data.**
+	**Identification of intercorrelations between the variables.**
+	
+# PCA Mathematical Framework:
+
++The total number of dimensions in a dataset is represented by the number of variables in it. Contextually if our data has 35 features then our data composes of 35 dimensions. It is difficult to decipher the substantive patterns within our multivariate dataset.
+
++To offset the aforementioned issue PCA creates components which are new variables. Each component is a linear combinations of all the previous variables which in our scenarios are the 35 feature.
+
++New Variables:
+
+Variable 1: Componenent1  
+
+$$  y_1=\beta_1x_1+\beta_2x_2{+\beta}_3x_3+.....................\beta_{35}x_{35}$$
+
+Variable 2 Component 2 
+
+$$y_1=\beta_1x_1+\beta_2x_2{+\beta}_3x_3+.....................\beta_{35}x_{35}$$
+
+…………………………
++Mathematically in comparison to the original large set of variables the newer albeit smaller set of variables named Principal Components extract credible and substantive information from the data by numerically and visually quantifying the maximal variability of the data. Principal components are linear combinations of the original variables that are progressively orthogonal to subsequent components and they capture 100% variability within the data  in decreasing order of precedence. 
++The first principal component captures the largest variability depicted by a directional perspective on the first PC1 axis whereas the second principal component captures the second largest variability on the second PC2 axis. 
+
++Numerically within the PCA framework the variability is measured by process of eigenvalues decomposition of covariance matrix or singular value decomposition of the data matrix after initial normalization of the data. 
+
++PCA can also be used in conjunction with other unsupervised learning techniques like knn clustering or hierarchical clustering to showcase inherent data structures.
+
+![PCA ](pcavariance.png)
+
+![PCA ](pcavarianceplot.png)
+
+
+![PCA ](pcahdl.png)
+![PCA ](pca_contri.png)
+
+![PCA ](pca_contriplot.png)
+
+
+# Clustering 
+
++ This is an unsupervised classification technique that creates groups with feature space similarity.
++ This technique is not for prediction but for exploratory knowledge discovery and for envisioning inherent patterns.
++	The data segmentation creates homogeneous sub groups which results in alleviating the complexity of the data.
++ Clustering can intuitively be considered as a unsupervised classification since Patterns can be observed in the data and these have to be unraveled.
++ Domain specific knowledge is required to distinguish one pattern from the other.
++ Ideally it is preferred if the boundaries were created by ML algorithm on the basis of similarity measures rather than by the subjective perspective of humans.
++ Sometimes a two fold process is used where during the first phase the class labels are created by clustering and then a supervised learner like decision trees uses these labels for classification.This will be under the umbrella of semi supervised classification.
++ The four main classes of clustering are **k-means**,**hierarchical**,**density** and **model based**.
+
+# Clustering With K Means
+
++ K-means is a very popular clustering technique which is prevalently used in the contemporary context
++ K-means does not use very complex statistical methods and is more simplistic as compared to other complicated clustering techniques.
++ It is flexible and gives good outcomes by adjustments.
++ Due to inherent randomness it is not assured that optimal clusters will be obtained.
++ To determine the number of clusters a reasonable guess has to be made or heuristics like elbow methods are used.
++ This clustering technique ie k-means cannot be used for non-spherical clusters.
++ K-means algorithm take all the n examples and divides them into k clusters.
++ For a good classification both the number of examples n and k clusters should be requisite in order to obtain optimal clusters.
++ The kmeans starts with an initial guess then heuristically ascertains the local optimal clusters which are iteratively improved to finally obtain homogenous clusters.
+
+# Euclidean Distance as Similarity Metric
+
++ Each feature is a dimension therefore 10 features space implies that the data represents a 10 dimensional space.
++ If k=3 then initially the algorithm randomly assigns three centers to three clusters.
++ K means is very sensitive to the starting center therefore sometimes optimal centers are not obtained.
++ To offset this issue many solutions have been identified like initial centers need not be a value from the data examples themselves. K-means++ improves the performance by a mathematical algorithm that allows for achieving optimality.
++ Once the cluster center is determined the examples are assigned to the appropriate cluster depending on the their distance from each of the centers.The common distance metri used is the Euclidean distance.
+
+	 $$dist(x,y)=\sqrt{\sum_{i=1}^{n}{(x_i-y_i)}^2}$$
++ The Euclidean distance formula is used to compute the distance between each example and each center. Each example is assigned to the center which has the smallest distance from it.
++ The three clusters formed are separated into Cluster A and Cluster B and Cluster C. The cluster boundaries are called Voronoi Diagram. The vertex of the three clusters is mathematically farthest from the three centers.
++ Subsequent to the initial phase the new center is updated by the centroid calculated from the current examples assigned to each cluster.
++ The distance measurement is now recalculated to reassign all the examples to the appropriate cluster.
++ The process works recursively and reassignment of centers and examples takes place until the reassignment becomes stable and does not change. The cluster assignments are final.
++ Finally cluster centers are determined and the examples are fully segmented.
++ K-means is sensitive to the number of clusters. If k is too large then the clusters are more homogeneous but the data can get overfitted.
++ Mostly a priori knowledge can facilitate the decision making for the number of clusters. For examples we would decide on the number of clusters on the basis of movie genres for a movies dataset.
++ The decision related to k number of clusters could be determined by business decisions.
++ A well implemented technique called Elbow method helps to determine the size of k based upon the criterion of increasing homogeneity and decreasing heterogeneity.
++ The objective is to determine the balance point beyond which the homogeneity or heterogeneity does not change.
++ Numerous Statistical techniques are used to create the elbow graph to provide insights into the data.
++ To obtain the best partitioned clusters the Within cluster Sum of Squares has to be minimized.
+  A &= \sum_{n=-\infty}^{+\infty} f(x) \\
+
+$$WCSS=\sum_{k=1}^{k}\sum_{x_i\epsilon C_k}(x_i-\mu_k)^2$$
+
+![k-means Clustering](K-means_convergence.gif) 
+
+
+# Additional Distance Metrics
+
+1.** Manhattan Distance**
+
+
+$$d_m(x,y)=\sum_{k=1}^{n}|(x_i-y_i)|$$
+
+
+2.** Pearson Correlation Coefficient**
+
+
+$$d_c=1-\frac{\sum_{i=1}^{n}(x_i-\bar{x})(y_i-\bar{y})}{\sqrt(\sum_{i=1}^n(x_i-\bar{x})^2\sum_{i=1}^{n}(y_i-\bar y)^2)}$$
+
+
+
+
+3.** Cosine Correlation**
+
+$$d_e=1-\frac{|\sum_{i=1}^{n}(x_i*y_i)|}{\sqrt(\sum_{i=1}^n(x_i)^2\sum_{i=1}^{n}(y_i)^2)}$$
+
+
+5.** Spearman's Correlation Distance** The x values are representing ranks.
+
+$$d_s=1-\frac{\sum_{i=1}^{n}(x_i-\bar{x})(y_i-\bar{y})}{\sqrt(\sum_{i=1}^n(x_i-\bar{x})^2\sum_{i=1}^{n}(y_i-\bar y)^2)}$$
+
++ Clustering Techniques that overcome the weakness of kmeans is PAM(Partitioning Around Medoids).Additionally CLARA(Clustering Large applicatio is used).PAM uses a data point of the original data set as a representative for each cluster.This is not the mean of the cluster since mean is sensitive to outliers.Like the k-means algorithm, Dissimilarity matrix is calculated by using diverse distance measures. This method requires the k number of clusters to be specified and this can be ascertained by the Silhouette Mehtod.
+
++ The initially assigned medoid is checked for dissimilarity metric.The data points are reassigned for obtainig a better medoid till convergence occurs.
+
++ To obtain optimal clusters Statistical methods like Elbow, Silhouhette and Gap are used. Gap is a Statisical method so is the most reliable,
+
+```{r message=FALSE, warning=FALSE}
+
+library(readxl)
+library(ggplot2)
+library(dplyr)
+library(corrplot)
+library(caret)
+library(cluster)
+library(factoextra)
+library(magrittr)
+library(fpc)
+
+setwd('C:\\projects\\MachineLearning')
+
+heartdata_initial<-read_excel("heart.xlsx")
+
+heartdata_initial$Sex<-factor(heartdata_initial$Sex)
+heartdata_initial$ChestPainType<-as.factor(heartdata_initial$ChestPainType)
+heartdata_initial$FastingBPmorethan120<-as.factor(heartdata_initial$FastingBPmorethan120)
+heartdata_initial$ExerciseInducedAngina<-as.factor(heartdata_initial$ExerciseInducedAngina)
+heartdata_initial$Thal<-as.factor(heartdata_initial$Thal)
+#heartdata_initial$ColoredVessels<-as.factor(heartdata_initial$ColoredVessels)
+heartdata_initial$HeartAttackRisk<-as.factor(heartdata_initial$HeartAttackRisk)
+heartdata_initial$RestingElectrographicResults<-as.factor(heartdata_initial$RestingElectrographicResults)
+
+
+summary(heartdata_initial)
+
+
+heartdata<-heartdata_initial[c(1,4,5,8,10,12)]
+heartdata_scaled<-scale(heartdata)
+
+# Looking at the optimal clusters by elbow method
+optimalclusters<-fviz_nbclust(heartdata_scaled,kmeans,method="wss")
+print(optimalclusters)
+
+# Running the k-means clustering algorithm.
+kmeansdf<-kmeans(heartdata_scaled,2,nstart=25)
+print(kmeansdf)
+
+# Finding the optimal number of clusters by Gap method
+fviz_nbclust(heartdata_scaled,kmeans,nstart=25,method="gap_stat",nboot=50)+labs(subtitle = "Gap Statistic Method")
+
+# Numerical summaries of the clusters
+cluster_aggregate<-aggregate(heartdata,by=list(cluster=kmeansdf$cluster),mean)
+
+print(cluster_aggregate)
+
+# Compare the above summaries to the Dataset grouped by Heart Atack Risk
+tapply(heartdata_initial$Age, heartdata_initial$HeartAttackRisk, summary)
+tapply(heartdata_initial$Cholesterol, heartdata_initial$HeartAttackRisk, summary)
+
+#PAM Partitioning Around Medoids
+# Finding the optimal number of clusters by Silhouette method and describing the cluster characterisitics:
+
+fviz_nbclust(heartdata_scaled,pam,method="silhouette")+theme_classic()
+
+
+pam_clusters<-pam(heartdata_scaled,2)
+print(pam_clusters)
+pamcluster_aggregate<-aggregate(heartdata,by=list(cluster=pam_clusters$cluster),mean)
+pam_clusters$medoids
+head(pam_clusters$clustering)
+
+# To add the cluster to original data for any further explorations.
+
+clusterbind_heartdata<-cbind(heartdata_initial,pam_clusters$cluster)
+head(clusterbind_heartdata)
+fviz_cluster(pam_clusters,ellipse.type = "t",ggtheme=theme_classic())
+
+``` 
+ 
+  
+# Hierarchical Clustering Analysis(HCA)
+
++ This technique of partitioning the data into groups does not require prespecifying numberof clusters.
+
++ This technique is used for gene expression data analysis.
+
++ Two sub types of hierarchical are as follows:
+
+** Agglomerative Clustering (AGNES Agglomerative Nesting) **
+
++ This starts by treating every instance/example as a cluster(leaf) and then these are grouped pair wise as per similarity to obtain a single root cluster. This algorithm has a "bottoms-up" paradigm.To ascertain the similarity distance functions are used which feed into the linkage functions that generate the new consolidated clusters. Finally the tree is cut to create partition clusters.
+
+
+** Divisive Clustering (Divise Analysis) **
++ This clustering starts from the root and recursively subdivides into two clusters as per the herterogeneity to finally group every instance as a seperate cluster. This algorithm has a "top-down" paradigm.
+
++ Hierarchical clustering generates a tree based object representation called the Dendrogram.
+
++ To achieve resultant optimal partition of data into clusters the hierarchical tree has to be cut at a certain level.
+
+![PAM Clustering](agglomerative.png) 
+
+
+# Linkage Functions:
+
+The main linkage functions are:
+
+1. **Maximum or Complete Linkages** The link at every step is ascertained by the shortest distances between to clusters.The distance between two cluster is maximum value of the pairwise distance between elements in the two clusters.
+2. **Minimum or Single Linkages** The distance between two cluster is minimum value of the pairwise distance between elements in the two clusters.
+3. **Mean or Average Linkages**The distance between two cluster is the average value of the pairwise distance between elements in the two clusters.
+4. **Centroid Linkage**The distance between two cluster is the centroid value of the pairwise distance between elements in the two clusters.
+5. **Ward's Minimum Variance Method**At each step pair of clusters with minimum between cluster distance are merged.This method minimizes the total within cluster variance. 
+
+A good visual and numerical illustrative is provided at the following link:
+
+https://en.wikipedia.org/wiki/Complete-linkage_clustering#Distance_Matrix1
+
+
+
+```{r}
+
+library(readxl)
+library(ggplot2)
+library(dplyr)
+library(corrplot)
+library(caret)
+library(cluster)
+library(factoextra)
+library(magrittr)
+library(fpc)
+
+# Setting the working directory
+setwd('C:\\projects\\MachineLearning')
+
+# Reading the data
+heartdata_initial<-read_excel("heart.xlsx")
+
+heartdata_initial$Sex<-factor(heartdata_initial$Sex)
+heartdata_initial$ChestPainType<-as.factor(heartdata_initial$ChestPainType)
+heartdata_initial$FastingBPmorethan120<-as.factor(heartdata_initial$FastingBPmorethan120)
+heartdata_initial$ExerciseInducedAngina<-as.factor(heartdata_initial$ExerciseInducedAngina)
+heartdata_initial$Thal<-as.factor(heartdata_initial$Thal)
+#heartdata_initial$ColoredVessels<-as.factor(heartdata_initial$ColoredVessels)
+heartdata_initial$HeartAttackRisk<-as.factor(heartdata_initial$HeartAttackRisk)
+heartdata_initial$RestingElectrographicResults<-as.factor(heartdata_initial$RestingElectrographicResults)
+
+# Summarizing the data
+summary(heartdata_initial)
+
+# Scaling the data
+heartdata<-heartdata_initial[c(1,4,5,8)]
+summary(heartdata)
+heartdata_scaled<-scale(heartdata)
+summary(heartdata_scaled)
+
+# Creating the dissimilarity metric using euclidean distance.
+heartdata_dist<-dist(heartdata_scaled,method="euclidean")
+
+# Displayng the distance
+head(heartdata_dist)
+as.matrix(heartdata_dist)[1:7,1:7]
+
+# Linkage function utilizes the dustance as a proximity metric and pair wise merges the instances thereby creating larger clusters with every successive iteration. Using linkage function ward 2
+
+
+agg_tree_ward<-hclust(d=heartdata_dist,method="ward.D2")
+
+print(agg_tree_ward)
+
+# Visualizing the Dendogram
+
+fviz_dend(agg_tree_ward,cex=.5)
+
+# Cutting the tree to create 2 clusters and visualizng it.
+
+agg_tree_warddend<-fviz_dend(agg_tree_ward,cex=.5,k=2,palette = "jco")
+
+agg_tree_warddend
+
+# To access the partition accuracy of the cluster tree (created by hclust()) there should be a strong correlation between # # the original distance matrix and the object linkage distance defined as cophenetic distances. 
+
+# Calculating Cophenetic Distances
+
+agg_cophenetic<-cophenetic(agg_tree_ward)
+
+head(agg_cophenetic)
+
+# Calculating the correlation between Cophenetic distances and original distances for :
+
+cor(heartdata_dist,agg_cophenetic)
+
+# using average linkage function 
+
+agg_tree_average<-hclust(d=heartdata_dist,method="average")
+
+fviz_dend(agg_tree_average,cex=.5)
+
+# Cophenetic Distances
+
+agg_cophenetic<-cophenetic(agg_tree_average)
+
+# correlation between Cophenetic distances and original distances:
+
+cor(heartdata_dist,agg_cophenetic)
+
+# cut the Tree into clusters
+
+two_groups<-cutree(agg_tree_ward,k=2)
+table(two_groups)
+head(two_groups,n=4)
+
+fviz_dend(agg_tree_average,k=3,cex=.5,color_labels_by_k =TRUE,rect=TRUE)
+
+fviz_cluster(list(data=heartdata_scaled,cluster=two_groups))
+
+two_groups<-cutree(agg_tree_average,h=2)
+table(two_groups)
+head(two_groups,n=4)
+
+
+fviz_dend(agg_tree_ward,k=2,cex=.5,color_labels_by_k =TRUE,rect=TRUE)
+
+fviz_cluster(list(data=heartdata_scaled,cluster=two_groups))
+
+# The Cluster package also provides Agglomerative and Divisive methodology
+
+#Agglomerative 
+agnes_cluster<-agnes(x=heartdata_scaled,stand=TRUE,metric = "euclidean",method="ward")
+
+agnes_cluster$ac
+agnes_tree<-pltree(agnes_cluster, cex = 0.6, hang = -1, main = "Dendrogram of Agnes")
+
+print(agnes_tree)
+
+
+# plot.hclust()
+plot(as.hclust(agnes_cluster), cex = 0.6, hang = -1)
+
+# Divisive
+diana_cluster<-diana(x=heartdata_scaled,stand=TRUE,metric = "euclidean")
+
+fviz_dend(agnes_cluster,cex=.6,k=2)
+fviz_dend(diana_cluster,cex=.6,k=2)
+
+# Heatmaps are used for Visualizing Hierarchical clustering.
+# Heat Maps are used to visualize clusters of samples and features. The high values are in red and low in yellow.
+
+heatmap(heartdata_scaled)
+library(gplots)
+heatmap.2(heartdata_scaled,scale="none",col=bluered(100),trace = "none",density.info = "none")
+
+# Visually Appealing
+library(pheatmap)
+
+pheatmap(heartdata_scaled, cutree_rows = 2)
+
+# Interactive Heatmap
+
+library(d3heatmap)
+
+d3heatmap(scale(heartdata),k_row=4,k_col=2)
+```
+
+# Clustering Tendency Assessment
+
++ This is used to check if the data is randomly distributed or does have some intrinsic patterns that can be divided into clusters.
++ This can be evaluated visually or numerically by Hopkins Statistic.Mathematically if Hopkin statisitcs is around .50 implies that the data is not cluasterable as the data is uniformly distributed.
+
+```{r}
+
+library(clustertend)
+library(factoextra)
+heartdata_initial<-read_excel("heart.xlsx")
+
+heartdata_initial$Sex<-factor(heartdata_initial$Sex)
+heartdata_initial$ChestPainType<-as.factor(heartdata_initial$ChestPainType)
+heartdata_initial$FastingBPmorethan120<-as.factor(heartdata_initial$FastingBPmorethan120)
+heartdata_initial$ExerciseInducedAngina<-as.factor(heartdata_initial$ExerciseInducedAngina)
+heartdata_initial$Thal<-as.factor(heartdata_initial$Thal)
+#heartdata_initial$ColoredVessels<-as.factor(heartdata_initial$ColoredVessels)
+heartdata_initial$HeartAttackRisk<-as.factor(heartdata_initial$HeartAttackRisk)
+heartdata_initial$RestingElectrographicResults<-as.factor(heartdata_initial$RestingElectrographicResults)
+
+# Summarizing the data
+summary(heartdata_initial)
+
+# Scaling the data
+heartdata<-heartdata_initial[c(1,4,5,8)]
+summary(heartdata)
+heartdata_scaled<-scale(heartdata)
+summary(heartdata_scaled)
+
+# The data do have 2 main by visualization:
+
+fviz_pca_ind(prcomp(heartdata_scaled),title="Heart Attack Risk Data",habillage =heartdata_initial$HeartAttackRisk,palette = "jco",geom = "point",ggtheme=theme_classic(),legend="bottom" )
+
+kmeans_clust<-kmeans(heartdata_scaled,2)
+
+fviz_cluster(list(data=heartdata_scaled,cluster=kmeans_clust$cluster),ellipse.type = "norm",geom="point",stand=FALSE,palette="jco",ggtheme = theme_classic())
+
+# Calculating hopkins statistics which shows that data does exhibit inherent patterns.
+hopkins(heartdata_scaled,n=nrow(heartdata_scaled)-1)
+
+# Visualizing the dissimilarity Matrix where red depicts high similarity and blue low similarity
+
+fviz_dist(dist(heartdata_scaled),show_labels = FALSE)+labs(title = "Heart Risk Data Set")
+```
+# Comparing Clustering Algorithms
+
+```{r}
+library(clValid)
+library(clustertend)
+library(factoextra)
+heartdata_initial<-read_excel("heart.xlsx")
+
+heartdata_initial$Sex<-factor(heartdata_initial$Sex)
+heartdata_initial$ChestPainType<-as.factor(heartdata_initial$ChestPainType)
+heartdata_initial$FastingBPmorethan120<-as.factor(heartdata_initial$FastingBPmorethan120)
+heartdata_initial$ExerciseInducedAngina<-as.factor(heartdata_initial$ExerciseInducedAngina)
+heartdata_initial$Thal<-as.factor(heartdata_initial$Thal)
+#heartdata_initial$ColoredVessels<-as.factor(heartdata_initial$ColoredVessels)
+heartdata_initial$HeartAttackRisk<-as.factor(heartdata_initial$HeartAttackRisk)
+heartdata_initial$RestingElectrographicResults<-as.factor(heartdata_initial$RestingElectrographicResults)
+
+# Summarizing the data
+summary(heartdata_initial)
+
+# Scaling the data
+heartdata<-heartdata_initial[c(1,4,5,8)]
+summary(heartdata)
+heartdata_scaled<-scale(heartdata)
+summary(heartdata_scaled)
+
+cluster_method<-c("hierarchical","kmeans","pam")
+check<-clValid(heartdata_scaled,nClust=2:6,clMethods=cluster_method,validation="internal")
+summary(check)
+
+
+cluster_method<-c("hierarchical","kmeans","pam")
+check_stability<-clValid(heartdata_scaled,nClust=2:6,clMethods=cluster_method,validation="stability")
+optimalScores(check_stability)
+
+```
+
+
+# Market Basket Analysis using Association Rules
+
+**Objective:**
+
++ To decipher how actionable patterns can be leveraged contextually.
++ Association rules aswithin the scope of  unsupervised classification.
++ Usage of the support and confidence measures to decide upon the important rules.
+
+** Market Basket Analysis and Association Rules**
+
++ Is the technique used for evaluating the purchasing patterns of individuals in order to target customers of interest.
++ The mechanism of identifying and making decisions based on the associations obtained from large databases can add value to many other domain areas aside from supermarkets
++ Association rules are set up in a transaction by the stipulation of an itemset on the LHS implying another item or item set on the right hand side. 
++ For illustration sake { bread, peanut , butter, jelly } will typically be found with bread in a transaction.
+	 {peanut , butter, jelly} ->  {bread} Association Rule
++ The Association rules that make use of transactional databases are not used for prediction but only classification.
++ This is an unsupervised  algorithm and implements an exploratory paradigm for the purpose of discovery.
++ This learning algorithm although similar to Decision rules are not supervised therefore the algorithm does not need to be trained ahead of time.
++ The data is not labeled ahead of time. The algorithm work on the data and provides insights on the substantive patterns that it deciphers
++ The common applications of interest are identifying DNA protein sequences in cancer data
++ Identifying internet customer trends, medical insurance patterns.
++ Association rule is able to work on a data and able to churn out patterns that an expert domain specialist may only be able to identify with experience.
+Apriori Algorithm 
++ The a priori rational id used for this algorthm which states that an item set can be frequent only if the constitutes themselves are frequent.
+{peanut , butter, jelly} will be frequent only if the {peanut},{butter,jelly} etc are also frequent.
++ Database transactions are very exhaustive therefore the possible itemset becomes a very quantifiably challenging value.
++ As the number of items or features grows the potential number of itemset grows exponentially.
++ For illustration purposes if there are k items or features then in the rules we can have 2^k possible combinations if all the features are used. If the trader sells 100 items the rule complexity would be compounded to 2^100 = 1.27e+30
++ The task of the creating finalized association rules for the aforementioned scenario is daunting therefore a smart rule learning algorithm uses heuristics to evaluate the patterns that are more prevalent as opposed to patterns that are rare.
++ For illustration purposes {orange fruit} and {brake oil} will rarely be associated in any way and therefore the rare patterns can be ignored.
++ The most popular heuristic used for ascertaining the insightful patterns is Apriori which makes a prior determination of the properties of frequent itemsets.
++ This algorithm works better with a large dataset as opposed to small dataset.
++ Results are easy to interpret but sometimes it is difficult to differentiate between common sense and substantive meaningful patterns.
++ Apriori utilizes statistical measures of an item’s “interestingness” to formulate association rules from within transactional databases.
+
+**Measuring Rule Interest ** 
+
++ To make a determination of whether a rule is important two statistical measures namely support and confidence are used.
++ A minimum threshold is numerically set up as a constraint in order to eliminate the inconsequential rules. It is important to understand what kind of rules are being eliminated.
++ Support measures the frequency with which rule set occurs. For example calculating how often does {peanut, jelly, butter}-> bread occur. The support of an individual item can also be calculated as follows
+
+
+$$Support(X)=\frac{Count(X)}{N}$$
+
+
++ N=number of transactions in the database 
++ X is the number of transactions containing the item or itemset.
+
++ If {peanut, jelly, butter} occurs 100 out of 250 transactions then the support is 100/250
+
+	A rule’s Confidence measures its predictive power
+
+$$Confidence(X\rightarrow Y)=\frac{support(X,Y)}{support(X)}$$
+
++ Numerator is the support of both X and Y divided by the support of X
+
++ This intuitively informs us that presence of item X results in the presence of item Y.
++ The reverse directionality is not implied by this confidence which is usually not true.
++ Support (X, Y) is analogous to joint probability P(X and Y) whereas Support X is analogous to unconditional or marginal probability P(X) And Confidence (X -> Y) is analogous to Conditional probability P(X|Y).
++ Strong rules are those that have strong confidence and strong support.
+ 
++ Support {get well -> flowers} = 3/5=60% Strong support
++ Confidence {get well -> flowers} =.6/.6 =100%
++ Association Rule {get well -> flowers} is a strong rule
+
+# Association Rule Formulation Steps
+
++ If we are evaluating a itemset {A,B} by how frequently it occurs then it is explicit  that if {A} occurs very infrequently then we do not need to use {A} or {A,B} or any other itemset to be included in the rule set
++ Using the two statistical metrics the rule determination can be ascertained as follows:
+1. Identify the itemsets that meet the minimum support threshold.
+2. Constructing rules from itemsets that meet a minimum confidence threshold.
+3. The first phase is to evaluate the itemsets of each size starting with i=1.
+4. The first iteration consisting of computing the support of the itemset composed of 1 item, the second iteration is composed of 2 items etc.
+5. Each iteration results in i itemsets that meet the threshold criterion of the threshold support.
+6. The algorithm will eliminate some of the combination even before the next round. If {D} is infrequent in the first iteration from amongst A, B, C, D then {A,B} {A,C} and{B,C} will be evaluated .
+7. If for the next iteration it is discovered that {A,B} and {B,C} are frequent but {A,C} is not then any further combination consisting of  {A,C} like {A,B,C} need not be considered.
+8. For the third iteration we cannot generate any itemset therefore algorithm will stop.
+9. Finally for the next phase the association rules are generated using confidence threshold evaluation.
+	
+	
+	
+	

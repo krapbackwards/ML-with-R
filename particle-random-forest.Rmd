@@ -1,0 +1,175 @@
+---
+title: "Random Forest"
+author: "Joseph Park"
+date: "4/16/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## data and packages
+
+```{r}
+
+library(class)
+
+library(tidyverse)
+
+library(gmodels)
+
+library(MLmetrics)
+
+library(randomForest)
+
+library(caret)
+```
+
+```{r}
+particle <- read_csv("C:/Users/parkj/OneDrive/Documents/joe/ML with R/pid-5M.csv")
+```
+## sample (randomly) due to too much data for my laptop to process
+```{r}
+set.seed(47)
+particles <- particle[sample(nrow(particle), 50000), ]
+
+particles$id <- as.character(particles$id)
+
+
+print(particles[complete.cases(particles) == FALSE, ])
+str(as.factor(particles$id))
+print(which(is.na(particles)))
+print(summary(particles))
+for (i in 2:7){
+  print(sd(as.matrix(particles[,i])))
+}
+
+
+```
+```{r}
+for (i in 2:7){
+  hist(as.matrix(particles[,i]))
+}
+
+
+```
+## Split data
+
+```{r}
+particles_train <- particles[1:45000, 2:7]
+particles_test <- particles[45001:50000, 2:7]
+
+particles_train_labels <- particles[1:45000, 1]
+particles_test_labels <- particles[45001:50000, 1]
+```
+## Train classifier on training data and classify test data
+
+
+
+
+
+```{r}
+m_rf <- randomForest(particles_train, as.factor(particles$id[1:45000]))
+particles_test_pred <- predict(m_rf, particles_test)
+
+
+accuracy <- Accuracy(particles_test_pred, particles_test_labels[,1, drop = TRUE])
+
+str(particles_test_pred)
+
+print(accuracy)
+```
+
+
+
+```{r}
+CrossTable(x = particles_test_labels[,1, drop = TRUE], y = particles_test_pred, prop.chisq=FALSE)
+```
+
+
+```{r}
+m_rf
+```
+
+
+
+
+# Improving performance
+```{r}
+# This was taking too long.  It didn't stop after an hour.  I will come back to this.
+#ctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 10)
+
+#grid_rf <- expand.grid(.mtry = c(2, 3, 4, 5, 6))
+
+#m_rf_o <- train(particles_train, as.factor(particles$id[1:45000]), method = "rf", metric = "Kappa", trControl = ctrl, tuneGrid = grid_rf)
+```
+
+
+```{r}
+#generating classification iteration over hidden nodes for better model performance
+accuracy = 1:3
+
+particles_test_pred_l <- matrix(1:15000, nrow = 5000, ncol = 3)
+
+str(particles_test_pred_l)
+
+accuracy_l <- 1:3
+```
+
+```{r}
+for (i in 1:3){
+
+  m_rf_l <- randomForest(particles_train, as.factor(particles$id[1:45000]), mtry = i+1)
+  
+  particles_test_pred_l[,i] <- predict(m_rf_l, particles_test)
+     
+  particles_test_pred_l[which(particles_test_pred_l == "1")] <- "-11"
+
+particles_test_pred_l[which(particles_test_pred_l == "2")] <- "211"
+
+particles_test_pred_l[which(particles_test_pred_l == "3")] <- "2212"
+
+particles_test_pred_l[which(particles_test_pred_l == "4")] <- "321"
+
+  #metric
+  
+  accuracy_l[i] <- Accuracy(particles_test_pred_l[,i], particles_test_labels[,1, drop = TRUE])
+
+print(accuracy_l)
+
+#get best accurracy and corresponding index (with respect to Laplace estimator)
+  if (i > 1){
+    if (accuracy_l[i] > bestacc){
+      bestacc <- accuracy_l[i]
+      bestk <- i
+    }
+  } else {
+    bestacc <- accuracy_l[i]
+    bestk <- i
+  }
+}
+```
+
+```{r}
+plot(accuracy_l[1:3])
+print(paste("The best accuracy is", bestacc))
+```
+
+```{r}
+CrossTable(x = particles_test_labels[,1, drop = TRUE], y = particles_test_pred_l[,bestk], prop.chisq=FALSE)
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+```{r}
+
+```

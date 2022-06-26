@@ -1,0 +1,923 @@
+---  
+title: "Lecture 5 REGRESSION, REGRESSION TREES AND MODEL TREES"
+author: "Seema Singh Saharan"
+date: "28 Sept 2019"
+output:
+  html_document:
+      theme: journal
+      toc: yes
+      toc_depth: 4
+      #toc_float: true
+  word_document:
+      toc: yes
+      toc_depth: 4
+      #toc_float: true
+  pdf_document:
+      toc: yes
+      theme: journal
+      toc_depth: 4
+      #toc_float: true
+---
+---
+
+# Objectives: 
+
++ Comprehend Regression in context of predictive scope of machine learning algorithms.
++ Perceive Ordinary Linear Regression and the estimation of regression coefficients.
++ Adaptation of classification Trees to depict regression trees for the purpose of quantification of the prediction.
+
+# Regression Methods for Forecasting/ Prediction:
+
++ These methods help quantify the numeric relationship between the attributes/features of interest.
+
++ 	Predictions are inherently more insightful and substantive for decisions that depend on concrete numerical values like profit or investments in terms of dollars.
+
++ Regression entails elucidating relationships between one or multiple independent variable and a dependent variable. The relationship therefore can depicted by a  technique called Simple Regression or Multiple Regression.
+
++ The inherent premise/assumption for Simple Regression is that the relationship between the Independent and Dependent variable is linear ie follows a straight line pattern.
+
++ Simple Linear Regression is a scientific paradigm introduced by the genetic scientist Sir Francis Galton. He empirically proved that son's height regresses to the mean of the father's and mother's height.
+
++ Regression technique, although a simple technique can model complex relationships that facilitate ascertaining the strength, direction as well as numerical quantification of the response variable including futuristically achieving extrapolation.
+
++ This methodology can be used across a spectrum of domain areas including but not limited to insurance claims, crime rates, election results, profit projection etc.
+
++ Regression encompasses a family of algorithms addressing different combination of Categorical and Quantitative data.
+
++ In context of Simple or Multiple Regression the dependent (response variable) variables are quantitative and the independent variable can be categorical or quantitative.
+
++	If the dependent variable is a binary categorical variable and independent variable is nominal, ordinal, interval or ratio then for classification purposes the technique titled Logistic Regression is used whereas multinomial Logistic regression is used if the classification entails a categorical dependent response variable and multiple independent variable is is nominal, ordinal, interval or ratio.
+
+# Simple Linear Regression Model
+
+
+The following equation represents the simple regression model for the population ,exhibiting an association between a dependent(Y) and independent variable(X).
+
+**Population Model:**
+$$
+\begin{equation}
+\mathbf{Y = \alpha + \beta X + \epsilon}
+\end{equation}
+$$
+
+$\mathbf{\alpha}$ is the y intercept and Beta $\mathbf{\beta}$ is slope of the line and epsilon  $\mathbf{\epsilon}$ is the random error that cannot be explained by the model.The independent variable represents the predictor feature and the dependent variable represents the target feature.
+
+For a specific Y value this model can be represented as follows:
+
+$$
+\begin{equation}
+\mathbf{Y_i = \alpha + \beta x_i + \epsilon_i}
+\end{equation}
+$$
+
+# Key Assumptions of Simple Regression Model:
+
+**1.Linearity:** The expected value of error(average) $\epsilon$ is zero given a value of X ie $E(\epsilon_i)=E(\epsilon|x_i)=0$
+The expected value of the response variable(predictor feature) is a linear function of the explanatory variable(target feature).
+
+$$
+\mathbf{\begin{aligned}
+\mu_i =  E(Y_i)= E(Y|x_i) = E(\alpha + \beta x_i + \epsilon_i)\\
+=\alpha + \beta x_i +E(\epsilon_i)) \\
+=\alpha + \beta x_i +0 \\
+\mu_i=\alpha + \beta x_i
+\end{aligned}}
+$$
+
+$\alpha$ and $\beta$ are population parameters thereofore for a specific population model these are fixed and X is a specific value $x_i$ therefore is also a constant value.
+
+**2.Constant Variance:** The variance of the error is the same regardless of the values of X.The distribution of the error given a X value is the same as the distribution of Y given the X.The constant conditional variance of Y given an x value is represented as follows:
+
+$$
+\mathbf{\begin{aligned}
+V(Y|x_i) =E[(Y_i-\mu_i)^2]\\
+=E[Y_i-\alpha-\beta x_i]^2 \\
+=E[\epsilon_i^2]=\sigma_e^2
+\end{aligned}}
+$$
+
+
+${\mathbf\sigma_e^2}$  is a constant since the mean is zero therefore derivationaly the variance is just a constant.
+
+**3.Normality:** The errors are normally distributed which can be symbolically stated as $\mathbf{\epsilon_i \sim N(0,\sigma_e^2)}$. This can also be interpreted by the statement that the conditional distribution of the response variable is normal ie  $\mathbf{Y_i \sim N(\alpha+\beta x_i,\sigma_e^2)}$
+
+
+**4.Independence:**The data is collected as a simple random sample therfore $\mathbf{Y_i}$ and $\mathbf{Y_j}$ are independent of each other which implies tha the correspoding errors $\mathbf{\epsilon_i}$ is independent of $\epsilon_j$ given$\mathbf{i\neq j}$.
+
+**5.Fixed X measured with no errors:** X is measured accurately,technically using known values determined by a researcher in context of research studies.
+
+**6.X is not invariant:X** cannot have the same value throughout the data.
+
+
+# Linear Regression Assumptions Diagnostic Plots:
+
+ The following pre-requisite assumptions have to be checked for Regression:
+
+1.Linearity of the data (Between x and y). 
+2.Normality of residuals (Residual errors normally distributed). The residual errors are assumed to be normally distributed.
+3.Homogeneity of residuals variance (Constant Variance:Homoscedasticity ). 
+4.Independence of residuals error terms.
+
+ Potential problems that can be observed are as follows:
+
+1.Non-linearity of the predictor and target variable.
+2.Heteroscedasticity(Residual error non constant variance)
+2.Influential Values(A point that influences the Regression line):Outliers (extreme values of y the target variable) or High-leverage points(extreme values of x predictor variable)
+
+````{r, message=FALSE, warning=FALSE}
+
+library(tidyverse)
+library(broom)
+theme_set(theme_classic())
+
+library(ISLR)
+library(caret)
+library(readxl)
+library(pROC)
+library(lattice)
+library(ggplot2)
+library(dplyr)
+library(e1071) 
+library(corrplot)
+library(kknn)
+library(ggplot2)
+library(multiROC)
+library(MLeval)
+library(AppliedPredictiveModeling)
+library(corrplot)
+library(Hmisc)
+library(dplyr)
+
+# Upload the data and create a Linear Model.
+
+setwd('C:\\projects\\MachineLearning')
+
+heartdata<-read_excel("heart_attack.xlsx")
+
+reg_model <- lm(MaximumHeart_Rate~Age, data = heartdata)
+
+# Linear Regression Model Summary
+reg_model
+
+# Creating Diagnostic Plots:
+
+reg_model.diagnostics <- augment(reg_model)
+
+
+# .fitted: fitted values.
+# .resid: residual errors.
+# .hat: hat values used to investigate and identify leverage values (extreme values in x values).Any .hat value greater than 2( p + 1)/ n 
+# is high levarage.p = number of predictors and n -= numbr of observations.
+# .std.resid: standardized residuals, equals residuals divided by their standard errors. This is used to identify outliers (extreme values in the outcome y.) Observations whose standardized residuals are greater than 3 in absolute value are potential outliers.
+# .cooksd: Cook's distance, used to identify influential values, which can be an outlier or a high leverage point. If these are removed the # regression model will change.
+
+head(reg_model.diagnostics)
+
+
+ggplot(reg_model.diagnostics, aes(Age, MaximumHeart_Rate)) +
+geom_point() +
+stat_smooth(method = lm, se = FALSE) +
+geom_segment(aes(xend = Age, yend = .fitted), color = "red", size = 0.3)
+
+#Diagnostic Plots
+
+par(mfrow = c(2, 2))
+plot(reg_model)
+
+# The diagnostic plots show residuals in four different ways:
+# 
+# Residuals vs Fitted: This diagnostic plot is an indicator of the Linearity or Non Linearity of the relationship.If there is no perceivable pattern around the central horizontal curve then the relationship is linear.
+# 
+# Normal Q-Q: This diagnostic plot ascertains whether the residuals are normally distributed.If the resiuals are algned to the central diagonal then the residuals follow a straight line.
+# 
+# Scale-Location: This diagnostic is to evaluate the homogeneity of variance of the residuals .If the residuals are spread uniformly around the central line then the residuals are homoscedastic.
+# 
+# Residuals vs Leverage. Used to identify influential cases, that is extreme values that might influence the regression results when included or excluded from the analysis.  
+
+#Diagnostic Plots
+
+library( ggfortify) 
+autoplot( reg_model)
+
+# Cook's distance is used to evaluate the Influential points that will alter the Regression analysis or the coefficents values.
+# By default cook's distance more than 4/( n - p - 1) defines an influential value. 
+
+
+plot(reg_model, 4)
+# Residuals vs Leverage
+plot(reg_model, 5)
+
+
+```
+
+
+# Sample Linear Regression Model: 
+
+Since we use the sample instead of the population therefore we can represent using the following equation:
+
+$$\mathbf{\hat{y}}=\mathbf{a+bx}$$
+          
+where this is the Line of Best Fit or line of least suares which estimates the real response variable Y for the popluation.
+ and  a and b are the  estimates of $\alpha$  and $\beta$.
+ 
+**Ordinary Least Squares Estimation(OLS)** is a process of ascertaining the line of best fit that minimizes cumulative residual error.
+
+
+**Residual error: $\mathbf{e_i=y-y_i}$**
+
+**RSS : Residual Sum of Squares** $\mathbf{\sum e_i^2 =\sum(y_i-\hat{y})^2}$
+
+This can also be interpreted as minimizing the **Mean Squared Error(MSE)** in context to testing data
+
+MSE = $\mathbf{\sqrt{(\frac{1}{n})\sum_{i=1}^{n}(y_{i} - x_{i})^{2}}}$
+
+This is minimized by using calculus and the value of a and b are derived as follows:
+
+$\mathbf{a=\bar{y}-b\bar{x}}$   and  
+
+b=$\mathbf{\frac{\sum{(x_i-\bar{x})(y_i-\bar{y})}}{\sum{(x_i-\bar{x})}^2}}$
+
+The value of b ie the slope  can also be transformed by the following formula of variance and covariance:
+
+$\mathbf{Var(x)=\frac{\sum{({x_i-\bar{x})}^2}}{n}}$
+
+And 
+
+$\mathbf{Cov(x,y)=\frac{\sum{(x_i-\bar{x})(y_i-\bar{y})}}{n}}$
+
+$\mathbf{b=\frac{Cov(x,y)}{Var(x)}}$
+
+a and b estimates $\mathbf{\alpha}$  and $\mathbf{\beta}$
+  
+# Correlation 
+
+The correlation between two variables determines the strength and direction of a relationship between two variables. This quantified by a measure called Pearson's correlation coefficient named after a scientist called Karl Pearson. Pearson correlation ranges from - to 1 where 0 signifies no correlation.
+
+Conventionally 0--.49 Weak Correlation  .5---.69 Moderate Correlation   .7---1.0  Strong Correlation
+
+$\mathbf{\rho_{x,y}}$  Correlation Coefficient is derived from Covariance by standardizing it in terms of the X nd Y variables.
+
+$\mathbf{\rho_{x,y}=Corr(x,y)=\frac{Cov(x,y)}{\sqrt{Var(x)}\sqrt{Var(y)}}=\frac{Cov(x,y)}{\sigma_x\sigma_y}}$
+
+
+# Coefficient of Variability 
+
+The coefficient of variability quantifies the percentage of variation in the response variable(target feature) that can be attributed by the explanatory variale (predictor variable).
+
+
+TSS(Total Sum of Squared Deviation) = RSS(Residual Sum of Squared) + RegSS(Regression Sum of Squared)
+Total Variation                       Unexplained Variation          Explained Variation
+
+                                    
+$\mathbf{Y_i-\bar{Y} = (Y_i-\hat{Y_i})+(\hat{Y_i}-\bar{Y})}$
+
+Squaring both sides derives to
+
+$\mathbf{\sum (Y_i-\bar{Y})^2 = \sum(Y_i-\hat{Y_i})^2+\sum(\hat{Y_i}-\bar{Y})^2}$
+
+
+Coefficient of Variability:
+
+$\mathbf{R^2 =\frac{RegSS}{TSS}}$
+
+where $\mathbf{\sqrt(R^2)}$ is the correlation coefficient.
+
+
+# Regression Trees and Model Trees
+
++ If the classification tree is adjusted the tree can be used to make numeric predictions. There are two types of trees used for numeric predictions: Regression trees and Model trees.
+
++ Paradoxically Regression trees (CART package) use the average value of the examples that reach the leaf rather than linear regression techniques to make predictions. 
+
++ A Regression tree is similar to a Classification tree but for Regression tree a model is fitted to each node to provide a specific predicted value of Y for creating partition .The node impurity is typically ascertained by sum of squared deviation.
+
++ Model trees are more powerful and these use Regression techniques. Specifically at each leaf node a multi Regression model is built from the examples reaching the nodes. These might be more accurate but sometimes could possible be very cumbersome if they are too many leaves.Model tree and Regression tree visualuzation is provided in the link below:
+
+   [](https://towardsdatascience.com/introduction-to-model-trees-6e396259379a)
+   [](http://www.stat.cmu.edu/~cshalizi/350-2006/lecture-10.pdf)
+
++ Regression trees and model trees are less known as compared to Linear regression. Trees require significantly large data for training the algorithm.
+
++The tree automatically chooses the features for the final prediction to create a multiple regression framework but this comes with the tradeoff of not being able to ascertain effect of individual features. Even though the regression tree might fit the data to a greater extent the trees are more challenging to interpret as compared to a conventional regression model.
+
++ Model Trees using the regression model are better for scenarios where there are multiple features and these showcase non linear relationships between features and outcomes . Trees also do not need to satisfy distribution constraints like normality for the outcome data which are the inherent assumptions for Regression models.
+
++ The data is partitioned using the Divide and Conquer strategy. Unlike Trees which uses Entropy to access the homogeneity, trees use a measure called Standard Deviation reduction.
+
+   [](https://www.saedsayad.com/decision_tree_reg.htm)
+
+
+# Case Study: Predicting Cholesterol for Heart Data
+
+The data comprises of HeartAttack biomarkers from UCIrvine Repository was obtained at the kaggle website.
+
+  [](https://www.kaggle.com/ronitf/heart-disease-uci/data)
+
+The more exhuastive characterization of the features can be viewed at the aforementioned website.
+
+**Loading and Obtainig the Feature Summaries**
+
+```{r, message=FALSE, warning=FALSE}
+
+library(ISLR)
+library(caret)
+library(readxl)
+library(pROC)
+library(lattice)
+library(ggplot2)
+library(dplyr)
+library(e1071) 
+library(corrplot)
+library(kknn)
+library(ggplot2)
+library(multiROC)
+library(MLeval)
+library(AppliedPredictiveModeling)
+library(corrplot)
+library(Hmisc)
+library(dplyr)
+
+setwd('C:\\projects\\MachineLearning')
+
+heartdata<-read_excel("heart_attack.xlsx")
+
+
+heartdata$Sex<-as.character(heartdata$Sex)
+heartdata$Chest_Pain_Type<-as.character(heartdata$Chest_Pain_Type)
+heartdata$`Fasting_Blood_Pressure>120`<-as.character(heartdata$`Fasting_Blood_Pressure>120`)
+heartdata$Exercise_Induced_Angina<-as.character(heartdata$Exercise_Induced_Angina)
+heartdata$Thal<-as.character(heartdata$Thal)
+heartdata$Heart_Attack_Risk<-as.factor(heartdata$Heart_Attack_Risk)
+heartdata$Resting_Electrographic_Results<-as.character(heartdata$Resting_Electrographic_Results)
+
+
+str(heartdata)
+
+#knitr::kable(head((heartdata), format = "html"))
+
+summary(heartdata)
+
+#knitr::kable(summary(heartdata, format = "html"))
+
+```
+
+
+**Feature Visualization** 
+````{r, message=FALSE, warning=FALSE}
+
+library(AppliedPredictiveModeling)
+transparentTheme(trans = .4)
+library(caret)
+library("ggplot2")
+library("dplyr")
+library("ggpubr")
+library(openintro)
+library(dplyr)
+library(ggplot2)
+library(e1071)
+
+
+ggplot(heartdata, aes(x=Age)) + 
+    geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                   binwidth=.5,
+                   colour="black", fill="white") +
+    geom_density(alpha=.2, fill="#FF6666")  # Overlay with transparent density plot
+
+ggplot(heartdata, aes(x=Resting_BP)) + 
+    geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                   binwidth=.5,
+                   colour="black", fill="white") +
+    geom_density(alpha=.2, fill="#FF6666")  # Overlay with transparent density plot
+
+ggplot(heartdata, aes(x=Cholesterol)) + 
+    geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                   binwidth=.5,
+                   colour="black", fill="white") +
+    geom_density(alpha=.2, fill="#FF6666")  # Overlay with transparent density plot
+
+ggplot(heartdata, aes(x=MaximumHeart_Rate)) + 
+    geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                   binwidth=.5,
+                   colour="black", fill="white") +
+    geom_density(alpha=.2, fill="#FF6666")  # Overlay with transparent density plot
+
+hist(heartdata$MaximumHeart_Rate)
+hist(log2(heartdata$MaximumHeart_Rate))
+hist((heartdata$MaximumHeart_Rate)^2)
+hist(sqrt(heartdata$MaximumHeart_Rate))
+
+
+ggplot(heartdata, aes(x=Oldpeak)) + 
+    geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                   binwidth=.5,
+                   colour="black", fill="white") +
+    geom_density(alpha=.2, fill="#FF6666")  # Overlay with transparent density plot
+
+
+
+featurePlot(x = heartdata[c(1,4,5,8,10,11,12)], 
+           y = heartdata$Heart_Attack_Risk,
+            plot = "density", 
+            ## Pass in options to xyplot() to 
+            ## make it prettier
+            scales = list(x = list(relation="free"), 
+                          y = list(relation="free")), 
+            adjust = 1.5, 
+            pch = "|", 
+            layout = c(4, 2), 
+            auto.key = list(columns = 5))
+
+
+varlist <- c('Age', 'Resting_BP','Cholesterol','MaximumHeart_Rate','Oldpeak')
+
+customPlot <- function(varName) {
+
+heartdata %>% 
+group_by_("Heart_Attack_Risk") %>% 
+select_("Heart_Attack_Risk",varName) %>% 
+ggplot(aes_string("Heart_Attack_Risk",varName,fill="Heart_Attack_Risk")) + geom_boxplot()+scale_fill_manual(values=c("#999999", "#E69F00"))+facet_wrap(~Heart_Attack_Risk)
+}
+lapply(varlist,customPlot)
+
+```
+
+
+**Feature Correlation Visualization** 
+
+
+```{r, message=FALSE, warning=FALSE, fig.height = 8, fig.width = 8,out.width="40%"}
+
+library(ggstatsplot)
+
+  ggplot(heartdata, aes(x=heartdata$Age, y=heartdata$MaximumHeart_Rate)) + labs(x ="Age",y="Maximum Heart Rate")+
+  geom_point()+
+  geom_smooth(method=lm)
+
+# Loess method
+ggplot(heartdata, aes(x=heartdata$Age, y=heartdata$MaximumHeart_Rate)) + labs(x ="Age",y="Maximum Heart Rate")+
+  geom_point()+
+  geom_smooth()
+
+transparentTheme(trans = .4)
+
+correlation_r <- rcorr(as.matrix(heartdata[c(-2,-3,-6,-7,-9,-13,-14)]))
+
+correlation_Matrix <- correlation_r$r
+p_mat <- correlation_r$P
+corr_graph<-corrplot(correlation_Matrix, type = "upper", order = "hclust", 
+         p.mat = p_mat, sig.level = 0.05)
+
+
+col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
+
+corsig<-corrplot(correlation_Matrix, method = "color", col = col(200),  
+         type = "upper", order = "hclust", 
+         addCoef.col = "black", # Add coefficient of correlation
+         tl.col = "darkblue", tl.srt = 45, #Text label color and rotation
+         # Combine with significance level
+         p.mat = p_mat, sig.level = 0.05, insig = "blank", 
+         # hide correlation coefficient on the principal diagonal
+         diag = FALSE,
+         title = "Correlation Between Significant Biomarkers",
+         mar=c(0,0,1,0)
+         )
+
+           
+```
+
+# Creating a Regression Model using caret (Classification and Regression Training) Package
+
+Is a customized,comprehensive and exhaustive package which provides a wide spectrum of versatile functions to implement predictive models. Primarily the functionality offered includes data splitting,pre-processing,feature selection,model tuning using resampling,variable importance estimation etc.The latest version of the package is available on github.
+
+
+**Basic Functionality:**
+
+The train() function from caret formulates model for the specific algorithm. The train() function takes three parameters Formula,Dataset and Method.
+
+The formula's parameter is the dependent variables(target feature) and independent variables(predictor features), dataset's parameter is the data and method's parameter is the classification or Predictor model.
+
+**Resampling:**
+
+To improve the model and avoid overfitting we can implement k-fold validation,leave-one-out cross-validation or bootstrapping.To implement these resampling techniques the train function takes an optional parameter trControl (train control). To do this a caret function trainControl() is used.
+
+**Preprocessing:**
+
+To incorporate the step of streamlining the data(standardizing or transforming), another parameter called preprocess can be given as a argument to the function train()
+
+This centers and scales the data.Other parameters that can be used are:
+ 
+BoxCox", "range", "knnImpute", "bagImpute", "medianImpute", "pca", "ica"
+
+**Hyperparameters**
+
+To ascertain the most optimal hyperparameters the parameter called tuneGrid is used or a random parameter can be set to obtain the optimal parameterrs automatically.
+
+**Variable Importance**
+
+The importance of variables for classification or prediction can be ascertained by the varImp() function whcih can also be plotted using ggplot2()
+
+**Predict or Classification**
+
+The final prediction or classification  is achieved by the predict() funcion
+
+# Linear Regression
+```{r message=FALSE, warning=FALSE}
+
+
+set.seed(212)
+trainIndex <- createDataPartition(heartdata$Heart_Attack_Risk, p = 0.8, list=FALSE, times=1)
+subTrain <- heartdata[trainIndex,]
+subTest <- heartdata[-trainIndex,]
+
+# setup cross validation and control parameters
+control <- trainControl(method="repeatedcv", number=3, repeats = 3, verbose = TRUE, search = "grid")
+metric <- "RMSE"
+tuneLength <- 10
+
+# Training process 
+# Fit / train a Linear Regression model to  dataset
+fit.LR <- caret::train(MaximumHeart_Rate ~ Age , data=heartdata, method="lm", metric=metric, 
+                       preProc=c("center", "scale"), trControl=control, tuneLength = tuneLength)
+summary(fit.LR)
+
+
+predictions<-predict(fit.LR,newdata = subTest)
+
+rmse<-RMSE( predictions, subTest$MaximumHeart_Rate)
+rmse
+
+# Error Rate
+
+error.rate=rmse/mean(subTest$MaximumHeart_Rate)
+error.rate
+
+```
+
+# Model Evaluation and Accuracy of Models:
+
+To check if the accuracy as well the goodness of fit of the model the following numerical metrics can be used:
+
+1.**RSE Residual Square Error ** should be as small as possible for good accuracy.
+2.**R-squared ** accounts for the variablity of target feature attributed by predictor feature 
+3.**p-value** Exhibits if the Linear Regression between the variables is statistical significant.
+
+# Multiple Linear Regression 
+
+If there are several independent /predictor variables for an outcome /response variable then Multiple Linear Regression is very useful.
+This a good technique that can model any numeric data though the model formulation must be specified by the user.
+This technique works intrinsically for numeric data and requires additional processing for categorical data.
+The algorithm makes strong assumptions of the underlying data, does not handle missing data. The multiple Regression are additive where they can just incorporate main effects or main effects as well as interaction effect.
+
+$Y=\alpha+\beta X+\varepsilon\ $  will be modified to:
+
+
+$\mathbf{Y=\alpha+\beta_1X_1+\beta_2X_2+\beta_3X_3...........\beta_iX_i+\varepsilon}$
+
+This can also be represented as 
+
+$\mathbf{Y=\beta_0X_0+\beta_1X_1+\beta_2X_2+\beta_3X_3...........\beta_iX_i+\varepsilon}$
+
+Where $\mathbf{\alpha = \beta_0}$
+
+Therefore  can be generically denoted as:
+
+$\mathbf{Y=\beta X+\varepsilon}$
+
+Each row is an example , Yi s are features Y is the outcome and betas are the regression coefficients.
+This can be depicted in vector notation as:
+
+
+The model for the multiple regression using the sample data is  is 
+
+$\mathbf{\hat{Y}=\hat\beta X}$
+Where 
+
+$\mathbf{\hat\beta={(X^T X)}^{-\mathbf{1}}({X}^T Y)}$
+
+
+```{r message=FALSE, warning=FALSE}
+
+library(caret)
+library(readxl)
+
+
+setwd('C:\\projects\\MachineLearning')
+heartdata<-read_excel("heart_attack.xlsx")
+
+set.seed(200)
+
+trainIndex <- createDataPartition(heartdata$Heart_Attack_Risk, p = 0.8, list=FALSE, times=1)
+subTrain <- heartdata[trainIndex,]
+subTest <- heartdata[-trainIndex,]
+
+# setup cross validation and control parameters
+control <- trainControl(method="repeatedcv", number=3, repeats = 3, verbose = TRUE, search = "grid")
+metric <- "RMSE"
+tuneLength <- 10
+
+# Training process 
+# Fit / train a Linear Regression model to  dataset
+fit.LR <- caret::train(Cholesterol ~ Age
+,data=heartdata, method="lm", metric=metric, 
+                       preProc=c("center", "scale"), trControl=control, tuneLength = tuneLength)
+summary(fit.LR)
+
+
+
+# Training process 
+# Fit / train a Linear Regression model to  dataset
+fit.LR <- caret::train(Cholesterol ~ Resting_BP
+,data=heartdata, method="lm", metric=metric, 
+                       preProc=c("center", "scale"), trControl=control, tuneLength = tuneLength)
+
+summary(fit.LR)
+
+# Training process 
+# Fit / train a Linear Regression model to  dataset
+fit.LR <- caret::train(Cholesterol ~ Age*Resting_BP
+,data=heartdata, method="lm", metric=metric, 
+                       preProc=c("center", "scale"), trControl=control, tuneLength = tuneLength)
+
+
+summary(fit.LR)
+
+predictions <- fit.LR %>% predict(subTest)
+RMSE( predictions, subTest$Cholesterol) 
+R2( predictions,  subTest$Cholesterol)
+
+        
+# If the model has insignifcant interactions then they can be dropped from the moel but if hypothesis 
+# is getting conducted then these should be considered since it helps evaluat the hypothesis.
+# If the model has significn interactions these should be incorporated.
+
+
+# Training process 
+# Fit / train a Linear Regression model to  dataset
+fit.LR <- caret::train(Cholesterol ~ Age*Resting_BP
+,data=heartdata, method="lm", metric=metric, 
+                       preProc=c("center", "scale"), trControl=control, tuneLength = tuneLength)
+summary(fit.LR)
+
+# Training process 
+# Fit / train a Linear Regression model to  dataset
+fit.LR <- caret::train(Cholesterol ~ Sex
+,data=heartdata, method="lm", metric=metric, 
+                       preProc=c("center", "scale"), trControl=control, tuneLength = tuneLength)
+summary(fit.LR)
+
+
+# Training process 
+# Fit / train a Linear Regression model to  dataset
+fit.LR <- caret::train(Cholesterol ~ Chest_Pain_Type
+,data=heartdata, method="lm", metric=metric, 
+                       preProc=c("center", "scale"), trControl=control, tuneLength = tuneLength)
+summary(fit.LR)
+
+# Training process 
+# Fit / train a Linear Regression model to  dataset
+fit.LR <- caret::train(Cholesterol ~Age+ Sex+Resting_BP
+,data=heartdata, method="lm", metric=metric, 
+                       preProc=c("center", "scale"), trControl=control, tuneLength = tuneLength)
+summary(fit.LR)
+
+#car:: vif( fit.LR)
+
+
+
+# Training process 
+# Fit / train a Linear Regression model to  dataset
+fit.LR <- caret::train(Cholesterol ~Age+ Sex+Resting_BP+Age*Sex
+,data=heartdata, method="lm", metric=metric, 
+                       preProc=c("center", "scale"), trControl=control, tuneLength = tuneLength)
+summary(fit.LR)
+
+
+# Training process 
+# Fit / train a Linear Regression model to  dataset
+fit.LR <- caret::train(Cholesterol ~.
+,data=heartdata, method="lm", metric=metric, 
+                       preProc=c("center", "scale"), trControl=control, tuneLength = tuneLength)
+summary(fit.LR)
+
+predictions <- fit.LR %>% predict(subTest)
+RMSE( predictions, subTest$Cholesterol) 
+R2( predictions,  subTest$Cholesterol)
+
+
+
+```
+
+# Non Linear Regression 
+
+Nonlinear Regression can either be Polynomial Regression(polynomial and quardratic terms), splines(Smooth curve is fitted to the data with segments of ploynomial terms called Knots) and Generalized additive models(Fits spline models with a selection of automate knots.)
+
+```{r message=FALSE, warning=FALSE}
+
+library(caret)
+library(readxl)
+library(dplyr)
+
+#Polynomial
+setwd('C:\\projects\\MachineLearning')
+heartdata<-read_excel("heart_attack.xlsx")
+
+
+trainIndex <- createDataPartition(heartdata$Heart_Attack_Risk, p = 0.8, list=FALSE, times=1)
+subTrain <- heartdata[trainIndex,]
+subTest <- heartdata[-trainIndex,]
+
+
+set.seed(200)
+
+poly_reg<-lm( Cholesterol ~ poly( Age, 2), data = subTrain)
+predictions <- poly_reg %>% predict(subTest)
+
+RMSE<-RMSE( predictions,subTest$Cholesterol)
+RMSE
+
+R2<-R2( predictions, subTest$Cholesterol)
+R2
+
+# Splines
+
+library( splines) # Build the model
+
+
+knots <- quantile( subTrain$Cholesterol, p = c( 0.25, 0.5, 0.75))
+
+splinemodel <- lm (Cholesterol ~ bs( Age, knots = knots), data = subTrain)
+
+# Make predictions
+
+predictions <- splinemodel %>% predict( subTest)
+
+# Model performance 
+
+data.frame( RMSE = RMSE( predictions, subTest$Cholesterol), R2 = R2( predictions, subTest$Cholesterol) ) 
+
+
+ ggplot( subTrain, aes( Age, Cholesterol) )+geom_point() + stat_smooth( method = lm, formula = y ~ splines:: bs( x, df = 3))
+
+ # Generalized Linear Model
+ 
+ library( mgcv)
+ 
+ gmmodel <- gam( Cholesterol ~ s( Age), data = subTrain) 
+ 
+ gampredictions <- gmmodel %>% predict( subTest) 
+ 
+ data.frame( RMSE = RMSE( gampredictions, subTest$Cholesterol), R2 = R2( gampredictions, subTest$Cholesterol) )
+ 
+ 
+ # Multicollinearity :VIF Below 1 not Correlated 1-5 Moderated Correlated  More than 5: Correlated.
+ 
+ model1 <- lm( Cholesterol ~., data = subTrain)
+ 
+ car:: vif( model1)
+
+
+
+```
+
+# Model Selection 
+
+The model was selected to determine the best model are as follows:
+
+
+1.Best subsets selection
+
+2.Stepwise selection
+
+3.Penalized regression 
+
+4.Dimension reduction methods 
+
+
+*Evaluation Metrics:*
+
+The numerical metric to evaluate Regression is R- Squared, MSE(Mean Square Error), RSE(Residual Standard Error), The other numerical measures are as follows:
+
+AIC(Akaike's Information Criteria) Penalizes the inclusion of additional variables to a model. It adds a penalty that increases the error when including additional terms. The lower the AIC, the better the model. AICc is a version of AIC corrected for small sample sizes. 
+
+BIC (or Bayesian information criteria) is a variation of AIC with a stronger penalty for including additional variables to the model. 
+
+Mallows Cp: A variantion of AIC.
+
+# Best Model Selection,Ridge and Lasso Regression
+ 
+```{r}
+
+
+library(caret)
+library(readxl)
+library(dplyr)
+library(leaps)
+
+#Polynomial
+setwd('C:\\projects\\MachineLearning')
+heartdata<-read_excel("heart_attack.xlsx")
+
+
+trainIndex <- createDataPartition(heartdata$Heart_Attack_Risk, p = 0.8, list=FALSE, times=1)
+subTrain <- heartdata[trainIndex,]
+subTest <- heartdata[-trainIndex,]
+
+
+set.seed(200)
+
+
+checkmodels <- regsubsets( Cholesterol ~., data = heartdata, nvmax = 13)
+
+summary(checkmodels)
+
+res.sum <- summary( checkmodels) 
+
+data.frame( Adj.R2 = which.max( res.sum $ adjr2), CP = which.min( res.sum $ cp), BIC = which.min( res.sum $ bic) )
+
+
+# Best AIC model:
+
+library( MASS)
+
+full.model <- lm( Cholesterol ~., data = heartdata) 
+
+step.model <- stepAIC( full.model, direction = "both", trace = FALSE) 
+
+summary( step.model)
+
+
+# Shrinkage Methods
+
+# Ridge Regression
+
+# Ridge regression shrinks the regression coefficient for variables that have contributions close to zero.
+# The shrinkage is achieved by penalizing the regression model by using the penalty term (L2 Norm:sum of the squared coefficients.
+# The penalty term is mathematically customized further to obtain a term called lambda.
+
+library( tidyverse) 
+library( caret) 
+library( glmnet)
+
+
+set.seed(212)
+trainIndex <- createDataPartition(heartdata$Heart_Attack_Risk, p = 0.8, list=FALSE, times=1)
+subTrain <- heartdata[trainIndex,]
+subTest <- heartdata[-trainIndex,]
+
+# setup cross validation and control parameters
+control <- trainControl(method="repeatedcv", number=3, repeats = 3, verbose = TRUE, search = "grid")
+metric <- "RMSE"
+tuneLength <- 10
+
+# Training process 
+# Fit / train a Linear Regression model to  dataset
+fit.LR <- caret::train(MaximumHeart_Rate ~ Age , data=heartdata, method="lm", metric=metric, 
+                       preProc=c("center", "scale"), trControl=control, tuneLength = tuneLength)
+summary(fit.LR)
+
+# Predictor variables and target variable 
+
+x <- model.matrix( Cholesterol ~., subTrain)[,-5] 
+y <- subTrain$Cholesterol
+
+ cv <- cv.glmnet( x, y, alpha = 0) #Alpha zero for Ridge 1 for Lasso that uses L1 Norm (sum of absolute coefficient)
+ # Display the best lambda value which signifies the best shrinkage
+ cv $ lambda.min ##  Fit the final model on the training data 
+ model <- glmnet( x, y, alpha = 0, lambda = cv $ lambda.min) # Display regression coefficients coef( model)
+
+coef( model)
+
+# Predictions on the test data
+
+x.test <- model.matrix( Cholesterol ~., subTest)[,-5] 
+
+predictions <- model %>% predict( x.test) %>% as.vector()
+# Model performance metrics 
+data.frame( RMSE = RMSE( predictions, subTest$Cholesterol), Rsquare = R2( predictions, subTest$Cholesterol ))
+
+```
+
+# Logistic Regression
+
+```{r}
+
+#Logistic Regression
+
+library( tidyverse) 
+library( caret) 
+library( glmnet)
+
+
+
+ set.seed(212)
+ trainIndex <- createDataPartition(heartdata$Heart_Attack_Risk, p = 0.8, list=FALSE, times=1)
+ subTrain <- heartdata[trainIndex,]
+ subTest <- heartdata[-trainIndex,]
+ 
+model <- glm( Heart_Attack_Risk ~ Cholesterol, data = subTrain, family = binomial)
+ summary( model) $ coef
+# 
+#  
+```
+
+

@@ -1,0 +1,147 @@
+---
+title: "market basket analysis of particles"
+author: "Joseph Park"
+date: "4/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## data and packages
+
+```{r}
+
+library(class)
+
+library(tidyverse)
+
+library(gmodels)
+
+library(MLmetrics)
+
+library(arules)
+
+library(OneR)
+
+library(plyr)
+
+```
+
+```{r}
+particle <- read_csv("C:/Users/parkj/Documents/joe/ML with R/pid-5M.csv")
+```
+## sample (randomly) due to too much data for my laptop to process
+```{r}
+set.seed(47)
+particles <- particle[sample(nrow(particle), 50000), ]
+
+particles_mb <- particles
+
+for (i in 2:7){
+#  particles_mb[,i] <- bin(particles[,5], nbins = 5, labels = c("1","2","3","4","5"), method = "content")
+  particles_mb[,i] <- cut(as.matrix(particles[,i]), breaks = c(min(particles[,i]) - 0.001, quantile(as.matrix(particles[,i]), .25), quantile(as.matrix(particles[,i]), .5) + 0.00002, quantile(as.matrix(particles[,i]), .75) + 0.00003, max(particles[,i])) + 0.00004, labels = FALSE)
+  }
+str(particles_mb)
+
+for (i in 2:7){
+  particles_mb[,i] <- particles_mb[,i] + 10*i
+}
+```
+```{r}
+print(particles[complete.cases(particles) == FALSE, ])
+
+print(which(is.na(particles)))
+print(summary(particles))
+for (i in 2:7){
+  print(sd(as.matrix(particles[,i])))
+}
+
+
+```
+```{r}
+for (i in 2:7){
+  hist(as.matrix(particles[,i]))
+}
+```
+```{r}
+#for (i in 2:7){
+#  particles_mb[,i] <- as.character(particles_mb[,i])
+#  for (j in 1:500){
+#    if (particles[j,i] <  quantile(as.matrix(particles[,i]), .25)){
+#      particles_mb[j,i] <- as.character(10*i)
+      
+#    } else if ((particles[j,i] >=  quantile(as.matrix(particles[,i]), .25)) & (particles[j,i] <  quantile(as.matrix(particles[,i]), .5))){
+#      particles_mb[j,i] <- as.character(10*i + 1)
+      
+#    } else if ((particles[j,i] >=  quantile(as.matrix(particles[,i]), .5)) & (particles[j,i] <  quantile(as.matrix(particles[,i]), .75))){
+#      particles_mb[j,i] <- as.character(10*i + 2)
+      
+#    } else {
+#      particles_mb[j,i] <- as.character(10*i + 3)
+#    } 
+#  }
+#}
+```
+```{r}
+write.table(as.matrix(particles_mb), "C:/Users/parkj/OneDrive/Documents/joe/ML with R/particles_mb.csv", sep=",", col.names=F, row.names=F)
+
+trans <- read.transactions("C:/Users/parkj/OneDrive/Documents/joe/ML with R/particles_mb.csv", sep = ",", rm.duplicates = FALSE)
+
+print(str(trans))
+
+summary(trans)
+```
+```{r}
+print(length(which(particles_mb$id == -11)))
+
+print(inspect(trans[1:10]))
+```
+```{r}
+itemFrequency(trans)
+
+itemFrequencyPlot(trans)
+```
+```{r}
+
+
+image(trans[1:5])
+
+trans_rules <- apriori(trans, parameter = list(support = .0001, confidence = .99, minlen = 1)) 
+
+```
+```{r}
+inspect(trans_rules[1:10])
+
+```
+```{r}
+inspect(subset(trans_rules, rhs %in% "-11"))
+
+```
+```{r}
+
+inspect(subset(trans_rules, rhs %in% "321")[1:10])
+```
+```{r}
+
+inspect(subset(trans_rules, rhs %in% "211")[1:10])
+```
+```{r}
+inspect(subset(trans_rules, lhs %ain% c("21","43") & rhs %in% c("-11","321","2212","211"))[1:10])
+
+```
+
+```{r}
+inspect(subset(trans_rules, lhs %ain% c("21","43") & rhs %in% c("-11","321","2212")))
+
+```
+
+
+```{r}
+trans_rules2 <- apriori(trans, parameter = list(support = .0001, confidence = .5, minlen = 1, maxlen = 2))
+```
+
+```{r}
+inspect(subset(trans_rules2, confidence > .93 & rhs %in% c("211","2212","321","-11")))
+```

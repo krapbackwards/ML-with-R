@@ -1,0 +1,208 @@
+---
+title: "knn particles"
+author: "Joe Park"
+date: "2/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+## data and packages
+
+```{r}
+
+library(class)
+
+library(tidyverse)
+
+library(gmodels)
+
+library(MLmetrics)
+```
+
+```{r}
+particle <- read_csv("C:/Users/parkj/OneDrive/Documents/joe/ML with R/pid-5M.csv")
+```
+## sample (randomly) due to too much data for my laptop to process
+```{r}
+set.seed(47)
+particles <- particle[sample(nrow(particle), 50000), ]
+
+#print(particles[complete.cases(particles) == TRUE, ])
+
+print(which(is.na(particles)))
+print(summary(particles))
+
+```
+## Split data
+
+```{r}
+particles_train <- particles[1:45000, 2:7]
+particles_test <- particles[45001:50000, 2:7]
+
+particles_train_labels <- particles[1:45000, 1]
+particles_test_labels <- particles[45001:50000, 1]
+
+```
+## Train classifier on training data and classify test data
+
+```{r}
+#generating classification for different k's to find best accuracy
+accuracy = 1:50
+
+for (i in 1:50){
+  particles_test_pred <- knn(train = particles_train, test = particles_test, cl = particles_train_labels[,1, drop = TRUE], k = i)
+
+#metric
+  accuracy[i] <- Accuracy(particles_test_pred, particles_test_labels[,1, drop = TRUE])
+
+#get best accurracy and corresponding index (k)
+  if (i > 1){
+    if (accuracy[i] > bestacc){
+      bestacc <- accuracy[i]
+      bestk <- i
+    }
+  } else {
+    bestacc <- accuracy[i]
+    bestk <- i
+  }
+}
+```
+## Metrics
+
+```{r}
+plot(accuracy[1:50])
+print(paste("The best accuracy is", bestacc))
+```
+```{r}
+
+particles_test_pred <- knn(train = particles_train, test = particles_test, cl = particles_train_labels[,1, drop = TRUE], k = bestk)
+CrossTable(x = particles_test_labels[,1, drop = TRUE], y = particles_test_pred, prop.chisq=FALSE)
+
+
+
+
+```
+# now normalized
+```{r}
+normalize <- function(x) {
+return ((x - min(x)) / (max(x) - min(x)))
+}
+
+particles[1:50000, 2:7] <- normalize(particles[1:50000, 2:7])
+
+
+#To confirm that the transformation was applied correctly, let's look at one variable's summary statistics:
+summary(particles)
+
+
+```
+## Split data
+
+```{r}
+particles_train <- particles[1:45000, 2:7]
+particles_test <- particles[45001:50000, 2:7]
+
+particles_train_labels <- particles[1:45000, 1]
+particles_test_labels <- particles[45001:50000, 1]
+
+```
+## Train classifier on training data and classify test data
+
+```{r}
+#generating classification for different k's to find best accuracy
+accuracy = 1:50
+
+for (i in 1:50){
+  particles_test_pred <- knn(train = particles_train, test = particles_test, cl = particles_train_labels[,1, drop = TRUE], k = i)
+
+#metric
+  accuracy[i] <- Accuracy(particles_test_pred, particles_test_labels[,1, drop = TRUE])
+
+#get best accurracy and corresponding index (k)
+  if (i > 1){
+    if (accuracy[i] > bestacc){
+      bestacc <- accuracy[i]
+      bestk <- i
+    }
+  } else {
+    bestacc <- accuracy[i]
+    bestk <- i
+  }
+}
+```
+## Metrics
+
+```{r}
+plot(accuracy[1:50])
+print(paste("The best accuracy is", bestacc))
+```
+```{r}
+
+particles_test_pred <- knn(train = particles_train, test = particles_test, cl = particles_train_labels[,1, drop = TRUE], k = bestk)
+CrossTable(x = particles_test_labels[,1, drop = TRUE], y = particles_test_pred, prop.chisq=FALSE)
+
+```
+# Now z-standardized
+```{r}
+
+set.seed(47)
+particles <- particle[sample(nrow(particle), 50000), ]
+
+particles[1:50000, 2:7] <- as.data.frame(scale(particles[1:50000, 2:7]))
+
+
+#To confirm that the transformation was applied correctly, let's look at one variable's summary statistics:
+summary(particles)
+
+
+```
+## Split data
+
+```{r}
+particles_train <- particles[1:45000, 2:7]
+particles_test <- particles[45001:50000, 2:7]
+
+particles_train_labels <- particles[1:45000, 1]
+particles_test_labels <- particles[45001:50000, 1]
+
+```
+## Train classifier on training data and classify test data
+
+```{r}
+#generating classification for different k's to find best accuracy
+accuracy = 1:50
+
+for (i in 1:50){
+  particles_test_pred <- knn(train = particles_train, test = particles_test, cl = particles_train_labels[,1, drop = TRUE], k = i)
+
+#metric
+  accuracy[i] <- Accuracy(particles_test_pred, particles_test_labels[,1, drop = TRUE])
+
+#get best accurracy and corresponding index (k)
+  if (i > 1){
+    if (accuracy[i] > bestacc){
+      bestacc <- accuracy[i]
+      bestk <- i
+    }
+  } else {
+    bestacc <- accuracy[i]
+    bestk <- i
+  }
+}
+```
+## Metrics
+
+```{r}
+plot(accuracy[1:50])
+print(paste("The best accuracy is", bestacc))
+```
+```{r}
+
+particles_test_pred <- knn(train = particles_train, test = particles_test, cl = particles_train_labels[,1, drop = TRUE], k = bestk)
+CrossTable(x = particles_test_labels[,1, drop = TRUE], y = particles_test_pred, prop.chisq=FALSE)
+
+```
